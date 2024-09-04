@@ -2,55 +2,101 @@ pipeline {
     agent any
 
     stages {
+        stage('GIT') {
+            steps {
+                echo 'Stage 0: Cloning the repository from GitHub.'
+            }
+        }
+
         stage('Build') {
             steps {
-                echo 'Building the project completed'
+                echo 'Stage 1: Build - Compiling and packaging the code using Maven completed.'
                 echo 'Tool: Maven'
             }
         }
+
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit and integration tests completed'
+                echo 'Stage 2: Unit and Integration Tests - Running unit tests using JUnit and integration tests using TestNG completed.'
                 echo 'Tools: JUnit, TestNG'
             }
+            post {
+                always {
+                    emailext(
+                        to: 'jnswanya@gmail.com',
+                        subject: "Unit and Integration Tests - ${currentBuild.currentResult}",
+                        body: "The Unit and Integration Tests stage has ${currentBuild.currentResult}. See the attached logs.",
+                        attachLog: true
+                    )
+                }
+            }
         }
+
         stage('Code Analysis') {
             steps {
-                echo 'Performing code analysis completed'
+                echo 'Stage 3: Code Analysis - Analyzing the code quality using SonarQube completed.'
                 echo 'Tool: SonarQube'
             }
         }
+
         stage('Security Scan') {
             steps {
-                echo 'Running security scan completed'
+                echo 'Stage 4: Security Scan - Scanning the code for vulnerabilities using OWASP Dependency-Check completed.'
                 echo 'Tool: OWASP Dependency-Check'
             }
+            post {
+                always {
+                    emailext(
+                        to: 'jnswanya@gmail.com',
+                        subject: "Security Scan - ${currentBuild.currentResult}",
+                        body: "The Security Scan stage has ${currentBuild.currentResult}. See the attached logs.",
+                        attachLog: true
+                    )
+                }
+            }
         }
+
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging server completed'
+                echo 'Stage 5: Deploy to Staging - Deploying the application to a staging server completed.'
                 echo 'Deployment Server: AWS EC2 (Staging)'
             }
         }
+
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on the staging environment completed'
+                echo 'Stage 6: Integration Tests on Staging - Running integration tests in the staging environment using Selenium and Cucumber completed.'
                 echo 'Tools: Selenium, Cucumber'
             }
         }
+
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to production server completed'
+                echo 'Stage 7: Deploy to Production - Deploying the application to the production server completed.'
                 echo 'Deployment Server: AWS EC2 (Production)'
             }
         }
     }
 
     post {
+        always {
+            echo 'Pipeline completed. Notifying stakeholders.'
+            emailext(
+                to: 'jnswanya@gmail.com',
+                subject: "Build ${currentBuild.currentResult}",
+                body: "The pipeline build has ${currentBuild.currentResult}. See the attached logs.",
+                attachLog: true
+            )
+        }
         success {
             mail to: 'jnswanya@gmail.com',
-                 subject: "Build status Email",
-                 body: "Build was successful."
+                 subject: "Build Successful",
+                 body: "The build was successful."
+        }
+        failure {
+            mail to: 'jnswanya@gmail.com',
+                 subject: "Build Failed",
+                 body: "The build failed."
         }
     }
 }
