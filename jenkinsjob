@@ -4,53 +4,72 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Building the project completed'
+                echo 'Building the project using Maven completed.'
                 echo 'Tool: Maven'
             }
         }
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit and integration tests completed'
+                echo 'Running unit tests with JUnit and integration tests with TestNG completed.'
                 echo 'Tools: JUnit, TestNG'
             }
         }
         stage('Code Analysis') {
             steps {
-                echo 'Performing code analysis completed'
+                echo 'Performing code analysis using SonarQube completed.'
                 echo 'Tool: SonarQube'
             }
         }
         stage('Security Scan') {
             steps {
-                echo 'Running security scan completed'
+                echo 'Performing a security scan using OWASP Dependency-Check completed.'
                 echo 'Tool: OWASP Dependency-Check'
             }
         }
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging server completed'
+                echo 'Deploying the application to the staging server on AWS EC2 completed.'
                 echo 'Deployment Server: AWS EC2 (Staging)'
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on the staging environment completed'
+                echo 'Running integration tests on the staging environment using Selenium and Cucumber completed.'
                 echo 'Tools: Selenium, Cucumber'
             }
         }
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to production server completed'
+                echo 'Deploying the application to the production server on AWS EC2 completed.'
                 echo 'Deployment Server: AWS EC2 (Production)'
+            }
+        }
+        stage('GIT') {
+            steps { 
             }
         }
     }
 
     post {
-        success {
-            mail to: 'jnswanya@gmail.com',
-                 subject: "Build status Email",
-                 body: "Build was successful."
+        always {
+            script {
+                def logs = currentBuild.rawBuild.getLog(100).join("\n")
+                if (currentBuild.currentResult == 'SUCCESS') {
+                    mail to: 'jnswanya@gmail.com',
+                         subject: "Build status: SUCCESS",
+                         body: """The build was successful.
+                              |Logs:
+                              |${logs}
+                              """.stripMargin()
+                } else if (currentBuild.currentResult == 'FAILURE') {
+                    mail to: 'jnswanya@gmail.com',
+                         subject: "Build status: FAILURE",
+                         body: """The build failed.
+                              |Logs:
+                              |${logs}
+                              """.stripMargin()
+                }
+            }
         }
     }
 }
